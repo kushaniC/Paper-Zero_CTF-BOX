@@ -1,0 +1,41 @@
+   services:
+     ctfd:
+       image: ctfd/ctfd:3.7.0
+       restart: unless-stopped
+       ports:
+         - "8000:8000"
+       environment:
+         - DATABASE_URL=mysql+pymysql://ctfd:ctfd@db/ctfd
+         - REDIS_URL=redis://cache:6379
+       depends_on:
+         - db
+         - cache
+       networks:
+         - ctf_public
+         - ctf_internal
+
+     db:
+       image: mariadb:10.11
+       restart: unless-stopped
+       environment:
+         - MYSQL_ROOT_PASSWORD=ctfd_root_pw
+         - MYSQL_DATABASE=ctfd
+         - MYSQL_USER=ctfd
+         - MYSQL_PASSWORD=ctfd
+       volumes:
+         - db_data:/var/lib/mysql
+       networks:
+         - ctf_internal          # NOT exposed to the host â€” players can't reach it
+
+     cache:
+       image: redis:7
+       restart: unless-stopped
+       networks:
+         - ctf_internal
+
+   networks:
+     ctf_public:
+     ctf_internal:
+
+   volumes:
+     db_data:
