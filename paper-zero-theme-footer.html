@@ -1,0 +1,57 @@
+<script>
+(function(){
+  const THEME_KEY='paper-zero-theme-mode';
+  const themeNow=()=>{try{return localStorage.getItem(THEME_KEY)||'dark'}catch(e){return'dark'}};
+  function applyTheme(mode){document.documentElement.classList.toggle('pz-light-mode',mode==='light');const b=document.getElementById('pz-theme-toggle');if(b){b.textContent=mode==='light'?'☾  Dark':'☼  Light';b.setAttribute('aria-label',mode==='light'?'Switch to dark mode':'Switch to light mode');b.setAttribute('aria-pressed',mode==='light'?'true':'false')}}
+  function addThemeControl(){
+    if(document.getElementById('pz-theme-toggle'))return;
+    const nav=document.querySelector('#base-navbars')||document.querySelector('.navbar .navbar-collapse');if(!nav)return;
+    const list=nav.querySelector('ul.navbar-nav:last-of-type')||nav.querySelector('ul.navbar-nav')||nav;
+    const li=document.createElement('li');li.className='nav-item pz-theme-item';
+    const b=document.createElement('button');b.type='button';b.id='pz-theme-toggle';b.className='nav-link btn btn-link';b.style.cssText='border:0;background:transparent;font:inherit;cursor:pointer';
+    b.addEventListener('click',()=>{const next=themeNow()==='dark'?'light':'dark';try{localStorage.setItem(THEME_KEY,next)}catch(e){}applyTheme(next)});li.appendChild(b);list.appendChild(li);applyTheme(themeNow());
+  }
+  function cleanNavigation(){
+    const brand=document.querySelector('.navbar-brand');if(brand){if(brand.textContent.trim()!=='Paper Zero')brand.textContent='Paper Zero';brand.setAttribute('aria-label','Paper Zero home');brand.title='Paper Zero'}
+    document.title='Paper Zero | Incident Response Challenge';
+    const nav=document.querySelector('#base-navbars')||document.querySelector('.navbar .navbar-collapse');if(!nav)return;
+    const keep=['/users','/scoreboard','/challenges','/register','/login','/profile','/logout','/admin'];
+    nav.querySelectorAll('a[href]').forEach(a=>{if(a.closest('.navbar-brand'))return;let path='';try{path=new URL(a.href,location.origin).pathname.replace(/\/+$/,'')||'/'}catch(e){return}const allowed=keep.some(p=>path===p||path.startsWith(p+'/'));const item=a.closest('li');if(item){if(item.hidden===allowed)item.hidden=!allowed}else if(a.hidden===allowed)a.hidden=!allowed});
+    addThemeControl();
+  }
+  function installChallengeOrdering(){
+    const stageNumber=value=>{const match=String(value||"").match(/^\s*Stage\s*(\d+)/i);return match?Number(match[1]):Number.MAX_SAFE_INTEGER};
+    window.BETA_sortChallenges=function(items){
+      if(!Array.isArray(items))return items;
+      return items.map((item,index)=>({item,index})).sort((a,b)=>stageNumber(a.item.category)-stageNumber(b.item.category)||a.index-b.index).map(entry=>entry.item);
+    };
+  }
+  function loadingCurtain(){
+    if(document.getElementById('pz-loading-screen'))return;
+    const pathname=location.pathname.toLowerCase();
+    const hints=pathname.includes('challenge')?[
+      'Six evidence fragments. One missing examination paper.',
+      'Start with what the recovered image does not show.',
+      'A quiet trace in the network may point to the next lead.'
+    ]:pathname.includes('scoreboard')||pathname.includes('user')?[
+      'Every investigator leaves a trace in the case file.',
+      'Each recovered flag moves the breach timeline forward.',
+      'The evidence trail connects six separate systems.'
+    ]:[
+      'A confidential examination paper has disappeared from LST.',
+      'You are the junior investigator assigned to reconstruct the breach.',
+      'Follow the evidence. Recover the paper. Record every finding.'
+    ];
+    const hint=hints[Math.floor(Math.random()*hints.length)];
+    const curtain=document.createElement('div');curtain.id='pz-loading-screen';curtain.setAttribute('role','status');curtain.setAttribute('aria-live','polite');
+    curtain.innerHTML='<div class="pz-loader-card"><div class="pz-loader-mark"><span>PAPER ZERO // LST</span><span>CASE 001</span></div><h1 class="pz-loader-title">Reconstructing the incident</h1><p class="pz-loader-hint"></p><div class="pz-loader-track" aria-hidden="true"><div class="pz-loader-bar"></div></div><div class="pz-loader-status"><span>Securing evidence channel</span><span class="pz-loader-percent">04%</span></div></div>';
+    curtain.querySelector('.pz-loader-hint').textContent=hint;document.body.appendChild(curtain);
+    const bar=curtain.querySelector('.pz-loader-bar'),percent=curtain.querySelector('.pz-loader-percent');let value=4,loaded=document.readyState==='complete',start=Date.now();
+    const onLoad=()=>{loaded=true};window.addEventListener('load',onLoad,{once:true});
+    const timer=setInterval(()=>{value=loaded?Math.min(100,value+22):Math.min(91,value+Math.max(2,(91-value)*.16));bar.style.width=value+'%';percent.textContent=Math.round(value).toString().padStart(2,'0')+'%';if((loaded&&value>=100&&Date.now()-start>=1050)||Date.now()-start>=2800){clearInterval(timer);curtain.classList.add('pz-loader-out');setTimeout(()=>curtain.remove(),380)}},90);
+  }
+  function init(){applyTheme(themeNow());cleanNavigation();if(location.pathname==="/")loadingCurtain();const observer=new MutationObserver(()=>cleanNavigation());observer.observe(document.body,{childList:true,subtree:true});setTimeout(()=>observer.disconnect(),5000)}
+  installChallengeOrdering();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
