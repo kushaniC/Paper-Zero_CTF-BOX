@@ -1,0 +1,7 @@
+<?php
+// LEGACY CONFIG BACKUP — DO NOT SHIP
+$admin_user = "lst_admin";
+$admin_pass = "SuperSecret2026";
+// FLAG: LST{w3b_4dm1n_l34k3d_cr3ds}
+// Archived network capture: open port 8003 on the same host.
+?>
