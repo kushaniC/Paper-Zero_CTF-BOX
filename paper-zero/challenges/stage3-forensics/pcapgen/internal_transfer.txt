@@ -1,0 +1,7 @@
+INTERNAL FILE TRANSFER — CONFIDENTIAL
+FLAG: LST{p4ck3t_sn1ff3d_th3_l34k}
+SSH access to internal exam server:
+  user: lecturer
+  pass: LST_2026_Secure!
+  host: <server>
+  port: 8004
